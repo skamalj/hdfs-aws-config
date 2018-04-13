@@ -10,7 +10,7 @@
   </property>
   <property>
  <name>yarn.resourcemanager.hostname</name>
- <value>localhost</value>
+ <value>dns_to_change</value>
   </property>
   <property>
         <name>yarn.nodemanager.resource.memory-mb</name>
