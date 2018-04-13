@@ -9,3 +9,4 @@ echo $dns_name > slaves
 cp *.xml /usr/local/hadoop/etc/hadoop/
 cp hadoop-env.sh /usr/local/hadoop/etc/hadoop/
 cp slaves /usr/local/hadoop/etc/hadoop/
+cd ..
