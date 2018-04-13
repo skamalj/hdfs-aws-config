@@ -8,5 +8,8 @@ echo $dns_name > slaves
 ##Copy files to hadoop config
 cp *.xml /usr/local/hadoop/etc/hadoop/
 cp hadoop-env.sh /usr/local/hadoop/etc/hadoop/
+cp mapred-env.sh /usr/local/hadoop/etc/hadoop/
+cp yarn-env.sh /usr/local/hadoop/etc/hadoop/
+
 cp slaves /usr/local/hadoop/etc/hadoop/
 cd ..
