@@ -1,6 +1,6 @@
 ##Update configuration to set master DNS
 cd hdfs-aws-config
-export dns_name=`curl http://169.254.169.254/latest/meta-data/local-hostname`
+dns_name=`curl http://169.254.169.254/latest/meta-data/local-hostname`
 sed -i -e 's/dns_to_change/'"$dns_name"'/g' core-site.xml
 sed -i -e 's/dns_to_change/'"$dns_name"'/g' yarn-site.xml
 echo $dns_name > slaves
