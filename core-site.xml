@@ -19,6 +19,6 @@
 <configuration>
 <property>
   <name>fs.defaultFS</name>
-  <value>hdfs://<replace-by-hostname>:9000</value>
+  <value>hdfs://dns_to_change:9000</value>
 </property>
 </configuration>
