@@ -12,6 +12,4 @@ cd /usr/local
 sudo chown -R hduser:hadoop hadoop
 cd /data
 chown -R hduser:hadoop hadoop
-su - hduser
-chmod g+w /data/hadoop/logs
-exit 
+su -p - hduser -C "chmod g+w /data/hadoop/logs"
