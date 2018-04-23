@@ -8,5 +8,5 @@ EOF
 su - yarn << EOF
 yes "" | ssh-keygen -t rsa -P ""
 cat /home/yarn/.ssh/id_rsa.pub >> /home/yarn/.ssh/authorized_keys
-ssh-keyscan -H localhost >> /home/hduser/.ssh/known_hosts
+ssh-keyscan -H localhost >> /home/yarn/.ssh/known_hosts
 EOF
