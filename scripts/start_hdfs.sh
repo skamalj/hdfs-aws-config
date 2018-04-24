@@ -11,18 +11,18 @@ EOF
 
 ##Setup user and history server directories
 su - hduser << EOF
-hdfs dfs -mkdir -p /user/ubuntu
-hdfs dfs -mkdir -p /tmp/mr-history/done
-hdfs dfs -mkdir -p /tmp/mr-history/intermediate 
-hdfs dfs -mkdir -p /tmp/hadoop-yarn 
-hdfs dfs -chown ubuntu:hadoop  /user/ubuntu
-hdfs dfs -chown hduser:hadoop /tmp
-hdfs dfs -chown hduser:hadoop /user
-hdfs dfs -chmod -R 1777 /tmp
-hdfs dfs -chmod 777 /tmp/mr-history
-hdfs dfs -chmod 777 /tmp/mr-history/done
-hdfs dfs -chmod 777 /tmp/mr-history/intermediate
-hdfs dfs -chmod 1777 /tmp/hadoop-yarn 
+$HADOOP_INSTALL/bin/hdfs dfs -mkdir -p /user/ubuntu
+$HADOOP_INSTALL/bin/hdfs dfs -mkdir -p /tmp/mr-history/done
+$HADOOP_INSTALL/bin/hdfs dfs -mkdir -p /tmp/mr-history/intermediate 
+$HADOOP_INSTALL/bin/hdfs dfs -mkdir -p /tmp/hadoop-yarn 
+$HADOOP_INSTALL/bin/hdfs dfs -chown ubuntu:hadoop  /user/ubuntu
+$HADOOP_INSTALL/bin/hdfs dfs -chown hduser:hadoop /tmp
+$HADOOP_INSTALL/bin/hdfs dfs -chown hduser:hadoop /user
+$HADOOP_INSTALL/bin/hdfs dfs -chmod -R 1777 /tmp
+$HADOOP_INSTALL/bin/hdfs dfs -chmod 777 /tmp/mr-history
+$HADOOP_INSTALL/bin/hdfs dfs -chmod 777 /tmp/mr-history/done
+$HADOOP_INSTALL/bin/hdfs dfs -chmod 777 /tmp/mr-history/intermediate
+$HADOOP_INSTALL/bin/hdfs dfs -chmod 1777 /tmp/hadoop-yarn 
 EOF
 
 ##Start history server
