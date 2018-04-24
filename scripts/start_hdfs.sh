@@ -1,3 +1,4 @@
+. /home/ubuntu/hadoopenv
 ##Format namenode and start DFS
 su - hduser  << EOF
 $HADOOP_INSTALL/bin/hdfs namenode -format
