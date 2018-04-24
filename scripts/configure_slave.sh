@@ -15,6 +15,6 @@ EOF
 
 su - yarn << EOF
 cd /home/ubuntu/master_config
-mkdir /home/hduser/.ssh
+mkdir /home/yarn/.ssh
 cat id_rsa_yarn.pub >> /home/yarn/.ssh/authorized_keys
 EOF
