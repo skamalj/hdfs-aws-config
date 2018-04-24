@@ -9,10 +9,12 @@ su - hduser << EOF
 cd /home/ubuntu/master_config
 cp *.xml /usr/local/hadoop/etc/hadoop
 cp *env.sh /usr/local/hadoop/etc/hadoop
+mkdir /home/hduser/.ssh
 cat id_rsa_hduser.pub >> /home/hduser/.ssh/authorized_keys
 EOF
 
 su - yarn << EOF
 cd /home/ubuntu/master_config
+mkdir /home/hduser/.ssh
 cat id_rsa_yarn.pub >> /home/yarn/.ssh/authorized_keys
 EOF
