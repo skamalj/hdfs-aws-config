@@ -14,3 +14,6 @@ aws s3 cp yarn-env.sh s3://$1
 aws s3 cp  id_rsa_hduser.pub s3://$1/id_rsa_hduser.pub
 aws s3 cp  id_rsa_yarn.pub s3://$1/id_rsa_yarn.pub
 EOF
+apt-get update
+apt-get install python-setuptools -y
+easy_install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz
