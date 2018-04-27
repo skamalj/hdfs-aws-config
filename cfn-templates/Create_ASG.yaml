@@ -1,0 +1,73 @@
+AWSTemplateFormatVersion:          '2010-09-09'
+Description:                       "Template creates AutoScalingGroup for HDFS Cluster"
+Parameters:                        #Create placeholder variables where values are passed in from Master template
+  GitHubRepo:
+    Type:                          String
+  HDFSImage:
+    Type:                          String
+  KeyName:
+    Type:                          String
+  ASGSubnet1:
+    Type:                          String
+  ASGSubnet2:
+    Type:                          String
+  HDFSSecurityGroup:
+    Type:                          String
+  HdfsInstanceProfile:
+    Type:                          String
+  HdfsSharedBucket:
+    Type:                          String
+Resources:
+  MyHDFSASG:
+    Type:                          AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      LaunchConfigurationName:     !Ref MyLaunchConfig
+      MinSize:                     '0'
+      MaxSize:                     '0'
+      VPCZoneIdentifier:           #Master template passes both public subnets to this template
+      -                        !Ref ASGSubnet1
+      -                        !Ref ASGSubnet2
+      Tags:
+      - Key:                       HDFSNodeType
+        Value:                     Slave
+        PropagateAtLaunch:         true
+      - Key:                       Name
+        Value:                     HDFSNode
+        PropagateAtLaunch:         true
+      NotificationConfigurations:
+      - TopicARN:                  arn:aws:sns:ap-south-1:454770763022:hdfs-asg-topic
+        NotificationTypes:
+        - autoscaling:EC2_INSTANCE_LAUNCH
+        - autoscaling:EC2_INSTANCE_TERMINATE
+  MyLaunchConfig:
+    Type:                          AWS::AutoScaling::LaunchConfiguration
+    Properties:
+      IamInstanceProfile:          !Ref HdfsInstanceProfile
+      SecurityGroups:
+      -                        !Ref HDFSSecurityGroup
+      ImageId:                     !Ref HDFSImage
+      InstanceType:                m4.large
+      KeyName:                     !Ref KeyName
+      BlockDeviceMappings:
+      - DeviceName:                "/dev/sda1"
+        Ebs:
+          DeleteOnTermination:     'true'
+          VolumeSize:              '15'
+      - DeviceName:                "/dev/xvdb"
+        Ebs:
+          DeleteOnTermination:     'true'
+          VolumeSize:              '20'
+      UserData:
+        Fn::Base64:                !Sub |
+           #!/bin/bash
+           apt-get update
+           apt-get install python-setuptools -y
+           easy_install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz
+           cd /home/ubuntu
+           git clone ${GitHubRepo}
+           chmod u+x hdfs-aws-config/scripts/*
+           hdfs-aws-config/scripts/set_bashrc.sh
+           cd /home/ubuntu
+           hdfs-aws-config/scripts/setup-storage-and-dir.sh
+           hdfs-aws-config/scripts/configure_slave.sh ${HdfsSharedBucket}
+           hdfs-aws-config/scripts/start_slavenode.sh

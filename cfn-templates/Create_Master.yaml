@@ -1,0 +1,66 @@
+AWSTemplateFormatVersion:       '2010-09-09'
+Description:                    "Template creates master node for HDFS cluster"
+Parameters:                     #Create placeholder variables where values are passed in from Master template
+  GitHubRepo:
+    Type:                       String
+  HDFSImage:
+    Type:                       String
+  KeyName:
+    Type:                       String
+  HDFSSecurityGroup:
+    Type:                       String
+  MasterSubnet:
+    Type:                       String
+  HdfsInstanceProfile:
+    Type:                       String
+  HdfsSharedBucket:
+    Type:                       String
+Resources:
+  MyEC2Instance:
+    Type:                       AWS::EC2::Instance
+    Properties:
+      SubnetId:                 !Ref MasterSubnet
+      IamInstanceProfile:       !Ref HdfsInstanceProfile
+      SecurityGroupIds:
+      -                         !Ref HDFSSecurityGroup
+      ImageId:                  !Ref HDFSImage
+      InstanceType:             m4.xlarge
+      KeyName:                  !Ref KeyName
+      BlockDeviceMappings:
+      - DeviceName:             "/dev/sda1"
+        Ebs:
+          DeleteOnTermination:  'true'
+          VolumeSize:           '15'
+      - DeviceName:             "/dev/xvdb"
+        Ebs:
+          DeleteOnTermination:  'true'
+          VolumeSize:           '20'
+      Tags:
+      - Key:                    HDFSNodeType
+        Value:                  Master
+      - Key:                    Name
+        Value:                  HDFSMaster 
+      UserData:
+        Fn::Base64:             !Sub |
+           #!/bin/bash
+           apt-get update
+           apt-get install python-setuptools -y
+           easy_install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz
+           cd /home/ubuntu
+           git clone ${GitHubRepo}
+           chmod u+x hdfs-aws-config/scripts/*
+           hdfs-aws-config/scripts/set_bashrc.sh
+           cd /home/ubuntu
+           hdfs-aws-config/scripts/configure_master.sh
+           hdfs-aws-config/scripts/setup-storage-and-dir.sh
+           hdfs-aws-config/scripts/setup_ssh.sh
+           hdfs-aws-config/scripts/start_hdfs.sh
+           hdfs-aws-config/scripts/upload_master_config_to_s3.sh ${HdfsSharedBucket}
+           /usr/local/bin/cfn-signal -e $? --stack  ${AWS::StackName} --resource MyEC2Instance  --region ${AWS::Region}
+    CreationPolicy:
+      ResourceSignal:
+        Timeout:                PT30M
+Outputs:
+  DnsName:
+    Description:                "DNS allocated to instance"
+    Value:                      !GetAtt MyEC2Instance.PublicDnsName

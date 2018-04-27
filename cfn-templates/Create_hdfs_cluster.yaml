@@ -1,0 +1,62 @@
+AWSTemplateFormatVersion:     '2010-09-09'
+Description:                  "Master template to create HDFS cluster on AWS"
+Parameters:
+  GitHubRepo:
+    Description:              Enter Github repositary holding your scripts
+    Type:                     String
+    Default:                  https://github.com/skamalj/hdfs-aws-config.git
+  HDFSImage:
+    Description:              Enter base image-id for hdfs cluster
+    Type:                     String
+    Default:                  ami-b1e7c6de
+  KeyName:
+    Description:              Select keyname to use with your instance
+    Type:                     AWS::EC2::KeyPair::KeyName
+Resources:
+  hdfsinstancerole:           #Create InstanceProfile for S3 access and S3 bucket to hold config files
+    Type:                     AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL:            https://s3.ap-south-1.amazonaws.com/cfn-templates-ks/hdfs-templates/Create_Instance_Role.yaml
+  hdfsnetwork:                #Create Multi-AZ VPC and private-public subnets , routing table , security groups and IGW
+    Type:                     AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL:            https://s3.ap-south-1.amazonaws.com/cfn-templates-ks/hdfs-templates/Create_Network.yaml
+  hdfsmasterinstance:         #Create Master node for HDFS cluster
+    Type:                     AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL:            https://s3.ap-south-1.amazonaws.com/cfn-templates-ks/hdfs-templates/Create_Master.yaml
+      Parameters:
+        KeyName:              !Ref  KeyName
+        HDFSImage:            !Ref  HDFSImage
+        GitHubRepo:           !Ref  GitHubRepo
+        HdfsInstanceProfile:  !GetAtt hdfsinstancerole.Outputs.HdfsInstanceProfile
+        HDFSSecurityGroup:    !GetAtt hdfsnetwork.Outputs.HDFSSecurityGroup
+        MasterSubnet:         !GetAtt hdfsnetwork.Outputs.AZ1PubSubnet
+        HdfsSharedBucket:     !GetAtt hdfsinstancerole.Outputs.HdfsSharedBucket
+  hdfsasg:                    #Create AutoScalingGroup which can create extra nodes for cluster if required, initial min,max is 0
+    Type:                     AWS::CloudFormation::Stack
+    DependsOn:                hdfsmasterinstance
+    Properties:
+      TemplateURL:            https://s3.ap-south-1.amazonaws.com/cfn-templates-ks/hdfs-templates/Create_ASG.yaml
+      Parameters:
+        KeyName:              !Ref KeyName
+        HDFSImage:            !Ref  HDFSImage
+        GitHubRepo:           !Ref  GitHubRepo
+        HdfsInstanceProfile:  !GetAtt hdfsinstancerole.Outputs.HdfsInstanceProfile
+        HDFSSecurityGroup:    !GetAtt hdfsnetwork.Outputs.HDFSSecurityGroup
+        ASGSubnet1:           !GetAtt hdfsnetwork.Outputs.AZ1PubSubnet
+        ASGSubnet2:           !GetAtt hdfsnetwork.Outputs.AZ2PubSubnet
+        HdfsSharedBucket:     !GetAtt hdfsinstancerole.Outputs.HdfsSharedBucket
+  hdfsslaveinstance:          #Create nodes for HDFS cluster, so initial cluster has one master and one slave node
+    Type:                     AWS::CloudFormation::Stack
+    DependsOn:                hdfsmasterinstance
+    Properties:
+      TemplateURL:            https://s3.ap-south-1.amazonaws.com/cfn-templates-ks/hdfs-templates/Create_Slave.yaml
+      Parameters:
+        KeyName:              !Ref KeyName
+        HDFSImage:            !Ref  HDFSImage
+        GitHubRepo:           !Ref  GitHubRepo
+        HdfsInstanceProfile:  !GetAtt hdfsinstancerole.Outputs.HdfsInstanceProfile
+        HDFSSecurityGroup:    !GetAtt hdfsnetwork.Outputs.HDFSSecurityGroup
+        SlaveSubnet:          !GetAtt hdfsnetwork.Outputs.AZ1PubSubnet
+        HdfsSharedBucket:     !GetAtt hdfsinstancerole.Outputs.HdfsSharedBucket

@@ -1,0 +1,42 @@
+AWSTemplateFormatVersion:       '2010-09-09'
+Description:                    "Template to create InstanceProfile for EC2-S3 access and create S3 bucket for config files"
+Resources:
+  hdfsconfigs3bucket:
+    Type:                       AWS::S3::Bucket
+  hdfsawsrole:                  #Create role with trusted Principal (Ec2)
+    Type:                       AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version:                '2012-10-17'
+        Statement:
+        - Effect:               Allow
+          Principal:
+            Service:            ec2.amazonaws.com
+          Action:               sts:AssumeRole
+  hdfsinstanceprofile:          #Wrap role created above in InstanceProfile
+    Type:                       AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+      - Ref:                    hdfsawsrole
+  hdfsawspolicy:                #Associate policy (permissions) with the role
+    Type:                       AWS::IAM::Policy
+    Properties:
+      PolicyName:               s3bucketaccess
+      Roles:
+      - Ref:                    hdfsawsrole
+      PolicyDocument:
+        Version:                '2012-10-17'
+        Statement:
+        - Effect:               Allow
+          Action:               s3:*
+          Resource:
+          -                     !GetAtt hdfsconfigs3bucket.Arn
+          -                     !Join
+            -                   ''
+            - -                 !GetAtt hdfsconfigs3bucket.Arn
+              -                 "/*"
+Outputs:
+  HdfsInstanceProfile:
+    Value:                      !Ref hdfsinstanceprofile
+  HdfsSharedBucket:
+    Value:                      !Ref hdfsconfigs3bucket

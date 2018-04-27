@@ -1,0 +1,60 @@
+AWSTemplateFormatVersion:       '2010-09-09'
+Description:                    "Template to create initial node for hdfs cluster"
+Parameters:                     #Create placeholder variables where values are passed in from Master template
+  GitHubRepo:
+    Type:                       String
+  HDFSImage:
+    Type:                       String
+  KeyName:
+    Type:                       String
+  HDFSSecurityGroup:
+    Type:                       String
+  SlaveSubnet:
+    Type:                       String
+  HdfsInstanceProfile:
+    Type:                       String
+  HdfsSharedBucket:
+    Type:                       String
+Resources:
+  MyEC2Instance:
+    Type:                       AWS::EC2::Instance
+    Properties:
+      SubnetId:                 !Ref SlaveSubnet
+      IamInstanceProfile:       !Ref HdfsInstanceProfile
+      SecurityGroupIds:
+      -                         !Ref HDFSSecurityGroup
+      ImageId:                  !Ref HDFSImage
+      InstanceType:             m4.large
+      KeyName:                  !Ref KeyName
+      BlockDeviceMappings:
+      - DeviceName:             "/dev/sda1"
+        Ebs:
+          DeleteOnTermination:  'true'
+          VolumeSize:           '15'
+      - DeviceName:             "/dev/xvdb"
+        Ebs:
+          DeleteOnTermination:  'true'
+          VolumeSize:           '20'
+      Tags:
+      - Key:                    HDFSNodeType
+        Value:                  Slave
+      - Key:                    Name
+        Value:                  HDFSNode
+      UserData:
+        Fn::Base64:             !Sub |
+           #!/bin/bash
+           apt-get update
+           apt-get install python-setuptools -y
+           easy_install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz
+           cd /home/ubuntu
+           git clone ${GitHubRepo}
+           chmod u+x hdfs-aws-config/scripts/*
+           hdfs-aws-config/scripts/set_bashrc.sh
+           cd /home/ubuntu
+           hdfs-aws-config/scripts/setup-storage-and-dir.sh
+           hdfs-aws-config/scripts/configure_slave.sh ${HdfsSharedBucket}
+           hdfs-aws-config/scripts/start_slavenode.sh
+           /usr/local/bin/cfn-signal -e $? --stack  ${AWS::StackName} --resource MyEC2Instance  --region ${AWS::Region}
+    CreationPolicy:
+      ResourceSignal:
+        Timeout:                PT30M
