@@ -1,0 +1,60 @@
+AWSTemplateFormatVersion:            '2010-09-09'
+Description:                         "Template to create lambda function to update the slave file for cluster and store in S3"
+Parameters:                          #Create placeholder variables where values are passed in from Master template
+  HdfsSharedBucket:
+    Type:                            String
+Resources:
+  MySNSTopic:                        #This function also creates sns topic which is used for messaging ASG events to lambda function
+    Type:                            AWS::SNS::Topic
+  MyLambdaSnsPermission:
+    Type:                            AWS::Lambda::Permission
+    Properties:
+      Action:                        lambda:InvokeFunction
+      FunctionName:                  !GetAtt MyLambdaFunction.Arn
+      Principal:                     sns.amazonaws.com
+      SourceArn:                     !Ref MySNSTopic
+    DependsOn:                       MyLambdaSnsSubscription
+  MyLambdaSnsSubscription:
+    Type:                            AWS::SNS::Subscription
+    Properties:
+      Endpoint:                      !GetAtt  MyLambdaFunction.Arn
+      Protocol:                      lambda
+      TopicArn:                      !Ref MySNSTopic
+  MyLambdaFunction:
+    Type:                            AWS::Lambda::Function
+    Properties:
+      Runtime:                       python3.6
+      Role:                          arn:aws:iam::454770763022:role/lambda_basic_execution
+      Handler:                       index.lambda_handler
+      Environment:
+        Variables:
+          HDFSSharedBucket:          !Ref HdfsSharedBucket
+      Code:
+        ZipFile:                     |
+          import boto3
+          import json
+          import os
+          print('Loading updatehdfsslavefile function')
+          def lambda_handler(event, context):
+             s3 = boto3.resource('s3')
+             s3object = s3.Object( os.environ['HDFSSharedBucket'], 'slaves')
+             ec2 = boto3.client('ec2')
+             reservations = ec2.describe_instances(Filters=[
+                        {
+                           'Name':   'tag-key',
+                           'Values': [ 'HDFSNodeType',]
+                        },
+                    ])
+             slave_list = ''
+             for reservation in reservations['Reservations']:
+                for instance in reservation['Instances']:
+                    pvt_dns = instance['PrivateDnsName']
+                    if pvt_dns != '':
+                       slave_list = slave_list + pvt_dns + '\n'
+             response = s3object.put(ACL='private',Body=slave_list,StorageClass='STANDARD')
+             return response
+Outputs:
+  HDFSSnsTopicArn:
+    Value:                           !Ref MySNSTopic
+  HDFSLambdaFunctionArn:
+    Value:                           !GetAtt  MyLambdaFunction.Arn

@@ -17,6 +17,8 @@ Parameters:                        #Create placeholder variables where values ar
     Type:                          String
   HdfsSharedBucket:
     Type:                          String
+  HdfsTopicArn:
+    Type:                          String
 Resources:
   MyHDFSASG:
     Type:                          AWS::AutoScaling::AutoScalingGroup
@@ -35,7 +37,7 @@ Resources:
         Value:                     HDFSNode
         PropagateAtLaunch:         true
       NotificationConfigurations:
-      - TopicARN:                  arn:aws:sns:ap-south-1:454770763022:hdfs-asg-topic
+      - TopicARN:                  !Ref HdfsTopicArn
         NotificationTypes:
         - autoscaling:EC2_INSTANCE_LAUNCH
         - autoscaling:EC2_INSTANCE_TERMINATE

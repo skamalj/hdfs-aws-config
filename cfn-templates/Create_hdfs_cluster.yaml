@@ -47,6 +47,7 @@ Resources:
         ASGSubnet1:           !GetAtt hdfsnetwork.Outputs.AZ1PubSubnet
         ASGSubnet2:           !GetAtt hdfsnetwork.Outputs.AZ2PubSubnet
         HdfsSharedBucket:     !GetAtt hdfsinstancerole.Outputs.HdfsSharedBucket
+        HdfsTopicArn:         !GetAtt hdfslambdafunction.Outputs.HDFSSnsTopicArn
   hdfsslaveinstance:          #Create nodes for HDFS cluster, so initial cluster has one master and one slave node
     Type:                     AWS::CloudFormation::Stack
     DependsOn:                hdfsmasterinstance
@@ -59,4 +60,10 @@ Resources:
         HdfsInstanceProfile:  !GetAtt hdfsinstancerole.Outputs.HdfsInstanceProfile
         HDFSSecurityGroup:    !GetAtt hdfsnetwork.Outputs.HDFSSecurityGroup
         SlaveSubnet:          !GetAtt hdfsnetwork.Outputs.AZ1PubSubnet
+        HdfsSharedBucket:     !GetAtt hdfsinstancerole.Outputs.HdfsSharedBucket
+  hdfslambdafunction:         #Create nodes for HDFS cluster, so initial cluster has one master and one slave node
+    Type:                     AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL:            https://s3.ap-south-1.amazonaws.com/cfn-templates-ks/hdfs-templates/Create_Lambda.yaml
+      Parameters:
         HdfsSharedBucket:     !GetAtt hdfsinstancerole.Outputs.HdfsSharedBucket

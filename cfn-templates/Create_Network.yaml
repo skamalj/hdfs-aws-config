@@ -134,8 +134,8 @@ Resources:
     Properties:
       GroupId:                        !GetAtt mySecurityGroup.GroupId
       IpProtocol:                     tcp
-      FromPort:                       '8032'
-      ToPort:                         '8032'
+      FromPort:                       '8088'
+      ToPort:                         '8088'
       CidrIp:                         0.0.0.0/0
   myNameNodeIngressSGRule:
     Type:                             AWS::EC2::SecurityGroupIngress
