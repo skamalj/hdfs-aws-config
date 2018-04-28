@@ -67,3 +67,18 @@ Resources:
       TemplateURL:            https://s3.ap-south-1.amazonaws.com/cfn-templates-ks/hdfs-templates/Create_Lambda.yaml
       Parameters:
         HdfsSharedBucket:     !GetAtt hdfsinstancerole.Outputs.HdfsSharedBucket
+Outputs:
+  HdfsS3Bucket:
+    Value:                    !GetAtt hdfsinstancerole.Outputs.HdfsSharedBucket
+  NameNodeUrl:
+    Value:                    !Join
+     -                        ""
+     - -                      'http://'
+       -                      !GetAtt hdfsmasterinstance.Outputs.DnsName
+       -                      ':50070/'
+  ResourceManagerUrl:
+    Value:                    !Join
+     -                        ""
+     - -                      'http://'
+       -                      !GetAtt hdfsmasterinstance.Outputs.DnsName
+       -                      ':8088/'
