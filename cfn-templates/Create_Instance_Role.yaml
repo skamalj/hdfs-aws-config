@@ -3,6 +3,7 @@ Description:                    "Template to create InstanceProfile for EC2-S3 a
 Resources:
   hdfsconfigs3bucket:
     Type:                       AWS::S3::Bucket
+    DeletionPolicy:             Retain
   hdfsawsrole:                  #Create role with trusted Principal (Ec2)
     Type:                       AWS::IAM::Role
     Properties:

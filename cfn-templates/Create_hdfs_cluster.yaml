@@ -4,7 +4,7 @@ Parameters:
   GitHubRepo:
     Description:              Enter Github repositary holding your scripts
     Type:                     String
-    Default:                  https://github.com/skamalj/hdfs-aws-config.git
+    Default:                  https://github.com/skamalj/hdfs-aws-config.git -b cfn-hdfs-publish
   HDFSImage:
     Description:              Enter base image-id for hdfs cluster
     Type:                     String
