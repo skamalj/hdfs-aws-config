@@ -4,11 +4,15 @@ Parameters:
   GitHubRepo:
     Description:              Enter Github repositary holding your scripts
     Type:                     String
-    Default:                  https://github.com/skamalj/hdfs-aws-config.git
+    Default:                  https://github.com/skamalj/hdfs-aws-config.git -b cfn-hdfs-publish
   HDFSImage:
     Description:              Enter base image-id for hdfs cluster
     Type:                     String
     Default:                  ami-b1e7c6de
+  LambdaRoleArn:
+    Description:              Provide Serivce Role Arn for Lambda
+    Type:                     String
+    Default:                  arn:aws:iam::454770763022:role/lambda_basic_execution
   KeyName:
     Description:              Select keyname to use with your instance
     Type:                     AWS::EC2::KeyPair::KeyName
@@ -54,7 +58,7 @@ Resources:
     Properties:
       TemplateURL:            https://s3.ap-south-1.amazonaws.com/cfn-templates-ks/hdfs-templates/Create_Slave.yaml
       Parameters:
-        KeyName:              !Ref KeyName
+        KeyName:              !Ref  KeyName
         HDFSImage:            !Ref  HDFSImage
         GitHubRepo:           !Ref  GitHubRepo
         HdfsInstanceProfile:  !GetAtt hdfsinstancerole.Outputs.HdfsInstanceProfile
@@ -67,6 +71,7 @@ Resources:
       TemplateURL:            https://s3.ap-south-1.amazonaws.com/cfn-templates-ks/hdfs-templates/Create_Lambda.yaml
       Parameters:
         HdfsSharedBucket:     !GetAtt hdfsinstancerole.Outputs.HdfsSharedBucket
+        LambdaRoleArn:        !Ref LambdaRoleArn
 Outputs:
   HdfsS3Bucket:
     Value:                    !GetAtt hdfsinstancerole.Outputs.HdfsSharedBucket

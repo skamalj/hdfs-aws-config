@@ -3,6 +3,8 @@ Description:                         "Template to create lambda function to upda
 Parameters:                          #Create placeholder variables where values are passed in from Master template
   HdfsSharedBucket:
     Type:                            String
+  LambdaRoleArn:
+    Type:                            String
 Resources:
   MySNSTopic:                        #This function also creates sns topic which is used for messaging ASG events to lambda function
     Type:                            AWS::SNS::Topic
@@ -24,7 +26,7 @@ Resources:
     Type:                            AWS::Lambda::Function
     Properties:
       Runtime:                       python3.6
-      Role:                          arn:aws:iam::454770763022:role/lambda_basic_execution
+      Role:                          !Ref LambdaRoleArn
       Handler:                       index.lambda_handler
       Environment:
         Variables:
